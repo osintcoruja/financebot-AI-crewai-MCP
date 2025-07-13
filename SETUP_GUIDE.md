@@ -1,6 +1,6 @@
-# Guia de Instalação do Multi-Agent Analyst
+# Guia de Instalação do Super Agent AI
 
-Este guia irá ajudá-lo a configurar e rodar o aplicativo Multi-Agent Analyst.
+Este guia irá ajudá-lo a configurar e rodar o aplicativo Super Agent AI.
 
 ## Pré-requisitos
 
