@@ -1,12 +1,12 @@
-# 🤖 Multi-Agent Analyst – Chat Inteligente Multi-Fonte
+# 🤖 Super Agent AI 
 
-Bem-vindo ao **Multi-Agent Analyst**, uma plataforma de chat inteligente que integra múltiplas fontes de dados (financeiros, banco de dados, IA) em uma interface moderna e fácil de usar!
+Bem-vindo ao **Super Agent AI**, uma plataforma de chat inteligente que integra múltiplas fontes de dados (financeiros, banco de dados, IA) em uma interface moderna e fácil de usar!
 
 ---
 
 ## 🚀 O que é este projeto?
 
-O Multi-Agent Analyst é uma solução baseada em agentes de IA (CrewAI) que permite ao usuário:
+O Super Agent AI é uma solução baseada em agentes de IA (CrewAI) que permite ao usuário:
 - Fazer perguntas sobre finanças, bancos de dados e dados gerais
 - Obter respostas automáticas, estruturadas e contextualizadas
 - Visualizar resultados em formato de texto, tabela ou JSON
