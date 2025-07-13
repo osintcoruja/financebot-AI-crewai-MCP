@@ -1,0 +1,10 @@
+crewai-tools
+crewai-mcp-toolbox
+crewai
+fastmcp
+python-dotenv
+setuptools
+streamlit
+langchain-openai
+mcp[cli]
+nest-asyncio
