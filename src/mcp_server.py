@@ -84,9 +84,9 @@ def criar_agente_orquestrador(tools, llm):
         allow_delegation=True
     )
 
-# === PARTE 4: Crew: Controle Financeiro ===
+# === PARTE 4.1: Crew: Controle Financeiro (INSERÇÃO DE DADOS) ===
 
-def crew_controle_financeiro(tools, llm, memory, dados_json):
+def crew_controle_financeiro_insercao(tools, llm, memory, dados_json):
     coletor_controle_financeiro = Agent(
         role="Coletor de Dados Financeiros",
         goal="Extrair e organizar os dados da transação financeira.",
@@ -206,7 +206,6 @@ def crew_controle_financeiro(tools, llm, memory, dados_json):
         agent=redator
     )
 
-
     return Crew(
         agents=[coletor_controle_financeiro, gestor_dados, redator],
         tasks=[task_coleta_controle_financeiro, task_gestor_dados, task_redator],
@@ -215,6 +214,76 @@ def crew_controle_financeiro(tools, llm, memory, dados_json):
         entity_memory=memory,
         verbose=True,
     )
+
+# === PARTE 4.2: Crew: Controle Financeiro (CONSULTA DE DADOS) ===
+
+def crew_controle_financeiro_consulta(tools, llm, memory, dados_json):
+    coletor_controle_financeiro_consulta = Agent(
+        role="Coletor de Dados Financeiros",
+        goal="Extrair e organizar os dados necessários para a chamada (query) no banco Supabase, para consultas de dados.",
+        backstory="Especialista em captar detalhes de pedidos de consultas de dados em linguagem natural.",
+        tools=tools,
+        llm=llm,
+        verbose=True,
+        allow_delegation=False
+    )
+
+    gestor_dados = Agent(
+        role="Gestor de Dados SQL",
+        goal="Executar comandos SQL no Supabase, para consultas de dados, conforme o pedido coletado.",
+        backstory="Especialista em consultas (querys) de leitura/consulta no banco Supabase.",
+        tools=tools,
+        llm=llm,
+        memory=memoria_nova,
+        verbose=True,
+        allow_delegation=False
+    )
+
+    redator = Agent(
+        role="Comunicador Financeiro",
+        goal="Gerar resposta clara e amigável ao usuário.",
+        backstory="Responsável por traduzir os dados da transação realizada no banco Supabase para linguagem humana.",
+        tools=[],
+        llm=llm,
+        verbose=True,
+        allow_delegation=False
+    )
+
+    task_gestor_dados = Task(
+        description=f"""Executar a transação no banco Supabase com os dados fornecidos pelo agente coletor_controle_financeiro.
+        1 - Caso seja uma CONSULTA DE DADOS, a busca sql deve ser feita com base no pedido do usuário no formato json 
+        repassado pelo agente_classificador.
+        2 - Caso o usuário solicite consolidações como total de despesas ou total de receitas ou ainda saldo atualizado da conta, 
+        faça a consulta no banco Supabase e em seguida faça os cálculos necessários para a análise do resultado. Em seguida, 
+        encaminhe o resultado para o agente redator.""",
+        expected_output="Resultado da chamada (query) no banco Supabase",
+        agent=gestor_dados
+    )
+
+    task_redator = Task(
+        description="""
+        Sua missão é FORMULAR a resposta final com base no resultado da consulta feita pelo agente gestor_dados. 
+        Entregue como resposta exatamente o que o usuário pediu. Se ele pediu um total de despesas, entregue o total de despesas e não
+        o detalhamento de cada despesa. E assim por diante.
+        Use emojis para deixar mais amigável.
+        Seja breve e direto.
+        Sua resposta deve ser CLARA, HUMANA e NATURAL
+        """,
+        expected_output="""Resposta final clara e amigável para o usuário e fiel ao resultado da 
+        transação ou da consulta no banco Supabase feita pelo agente gestor_dados""",
+        agent=redator
+    )
+
+    return Crew(
+        agents=[gestor_dados, redator],
+        tasks=[task_gestor_dados, task_redator],
+        process=Process.sequential,
+        memory=True,
+        entity_memory=memory,
+        verbose=True,
+    )
+
+####################################################################################    
 
 # === PARTE 5: Crew: Consulta de Ativos Financeiros ===
 
@@ -255,11 +324,24 @@ def crew_consulta_ativos(tools, llm, memory, dados_json):
         Verificar se tem:
             - simbolo: código do ativo (PETR4, USDBRL, ^BVSP)
             - tipo_consulta: "cotacao", "analise", "historico"
-        - Sempre usar a tool `resolve_relative_date` para calcular a data.
-        - Use a ferramenta resolve_relative_date assim:
+
+        ## SOBRE A TOOL `resolve_relative_date`:        
+        - UTILIZE A TOOL `resolve_relative_date` SE E SOMENTE SE o usuário mencionar uma data com o formato fora do padrão, 
+        usando palavras como "ontem", "hoje", "anteontem", etc.
+        - Use a ferramenta resolve_relative_date conforme exemplo a seguir:
             Action: resolve_relative_date  
             Action Input: {{"input": "ontem"}}
-        - Resultado:
+        
+        ## RESULTADO ESPERADO:
+        - Resultado esperado (cenário onde o usuário não menciona uma data específica de consulta):
+        {{
+        "dados": {{
+                    "simbolo": "PETR4", 
+                    "tipo_consulta": "cotacao" | "analise"
+                }}
+        }}
+
+        - Resultado esperado (cenário onde o usuário menciona uma data específica de consulta):
         {{
         "dados": {{
                     "simbolo": "PETR4", 
@@ -331,32 +413,47 @@ async def assist_financ_core(question: str, user_id: str) -> str:
 
     classificacao_task = Task(
         description=f"""
-        📥 Sua missão é analisar a seguinte frase: "{question}" e **obrigatoriamente** gerar um objeto JSON no seguinte formato:
+        📥 Sua missão é analisar a seguinte frase: "{question}" e **obrigatoriamente** gerar um objeto JSON nos seguintes formatos:
 
-        📋 FORMATO FIXO OBRIGATÓRIO:
+        📋 CONTROLE_FINANCEIRO:
+
+        - CASO 1 (INSERÇÃO DE DADOS):
         {{
-        "classificacao": "CONTROLE_FINANCEIRO" | "CONSULTA_ATIVO",
+        "classificacao": "CONTROLE_FINANCEIRO" ,
         "status": "COMPLETO",
         "dados": {{
-            // para CONTROLE_FINANCEIRO:
             "valor": 1500.00,
             "tipo": "receita" | "despesa",
-            "conta_id": 5,
+            "conta_id": 5, // Use sempre conta_id=5 se não informado
             "categoria": "Alimentação",
             "data_transacao": "2025-07-20 | hoje | ontem | anteontem | 15/07/2025",
             "descricao": "Descrição livre da transação"
+            }}
+        }}
 
-            // para CONSULTA_ATIVO:
+        - CASO 2 (CONSULTA DE DADOS):
+        {{  
+        "classificacao": "CONTROLE_FINANCEIRO",
+        "status": "COMPLETO",
+            "dados": {{
+                "consulta": "descrição do pedido feito pelo usuário"
+            }}
+        }}
+
+        📋 CONSULTA_ATIVO:
+        {{
+        "classificacao": "CONSULTA_ATIVO",
+        "status": "COMPLETO",
+        "dados": {{
             "simbolo": "PETR4",
             "tipo_consulta": "cotacao" | "analise"
-        }}
+            }}
         }}
 
         ⚠️ Regras obrigatórias:
-        - NÃO SAIA do formato acima.
+        - NÃO SAIA doS 3 possíveis formato acima.
         - NÃO inclua observações, explicações ou textos soltos.
         - SEMPRE inclua status="COMPLETO"
-        - Use sempre conta_id=5 se não informado
         - Sempre que possível, preencha a descrição com base na frase original
         """,
         expected_output="Objeto JSON {dados_json} estruturado como especificado acima",
@@ -390,11 +487,15 @@ async def assist_financ_core(question: str, user_id: str) -> str:
 
     # Decide qual crew executar
     if classificacao == "CONTROLE_FINANCEIRO":
-        crew = crew_controle_financeiro(tools, llm, memory, dados)
+        if "consulta" in dados:
+            crew = crew_controle_financeiro_consulta(tools, llm, memory, dados)
+        else:
+            crew = crew_controle_financeiro_insercao(tools, llm, memory, dados)
     elif classificacao == "CONSULTA_ATIVO":
         crew = crew_consulta_ativos(tools, llm, memory, dados)
     else:
         return "Classificação desconhecida. Não sei o que fazer com isso."
+
 
     # Executa a próxima etapa
     resposta_final = await crew.kickoff_async()
