@@ -1,0 +1,77 @@
+🧾 1. Categorias de Despesas
+
+🏠 Moradia
+Aluguel
+Condomínio
+Luz / Energia elétrica
+Água
+Gás
+Internet / TV / Telefone
+
+🛒 Alimentação
+Supermercado
+Restaurante
+Lanches / Delivery
+Feira
+
+🚗 Transporte
+Combustível
+Transporte público
+Estacionamento
+Manutenção veicular
+Aplicativos (Uber, 99)
+
+🩺 Saúde
+Plano de saúde
+Medicamentos
+Consultas / Exames
+Academia
+
+👶 Educação
+Escola / Faculdade
+Cursos / Treinametos
+Material escolar
+
+🎉 Lazer
+Cinema / Teatro
+Assinaturas (Netflix, Spotify, etc)
+Viagens
+Eventos
+
+👕 Despesas pessoais
+Roupas
+Cabelereiro / Estética
+Cuidados pessoais
+
+💳 Finanças
+Faturas de cartão de crédito
+Juros / Multas
+Empréstimos / Parcelas
+Investimentos (aporte)
+
+👪 Família / Filhos
+Babá / Cuidador
+Mesada
+Despesas escolares
+
+🐶 Pets
+Ração
+Veterinário
+Petshop
+
+💼 Trabalho
+Despesas com home office
+Equipamentos / Ferramentas
+Cursos / Livros
+
+#####################################################
+
+💰 2. Categorias de Receitas
+
+Salário
+Rendimento de investimentos
+Freelance / Extra
+Aluguel recebido
+Reembolso
+Prêmios / Presentes
+Venda de bens

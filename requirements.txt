@@ -8,3 +8,4 @@ streamlit
 langchain-openai
 mcp[cli]
 nest-asyncio
+mcpadapt 
