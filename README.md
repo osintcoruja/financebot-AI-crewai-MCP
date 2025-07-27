@@ -67,7 +67,7 @@ graph TD;
 1. **Clone o repositório:**
    ```bash
    git clone <url-do-repo>
-   cd financebot_3
+   cd <diretório>
    ```
 
 2. **Instale as dependências:**
