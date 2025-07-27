@@ -1,22 +1,38 @@
-# Guia de Instalação do Super Agent AI
+# Guia de Instalação do Financebot
 
-Este guia irá ajudá-lo a configurar e rodar o aplicativo Super Agent AI.
+Este guia irá ajudá-lo a configurar e rodar o aplicativo Financebot.
 
 ## Pré-requisitos
 
-1. **Python 3.8+** instalado em seu sistema
-2. **Node.js** (para o servidor MCP do Supabase)
-3. **uv** (para o servidor MCP do YFinance)
+1. **Python 3.8+**
+2. **Node.js (v14 LTS ou superior)**
+   - Baixe e instale em https://nodejs.org/en/
+3. **uv** (gerenciador de pacotes Python)
+   - Instale via pip:
+     ```bash
+     pip install uv
+     ```
+   - Ou via curl (Linux/macOS):
+     ```bash
+     curl -LsSf https://astral.sh/uv/install.sh | sh
+     ```
 
 ## Passos de Instalação
 
-### 1. Instale as dependências Python
+### 1. Clone o repositório (se ainda não fez)
 
 ```bash
-pip install -r requirements.txt
+git clone <url-do-repositorio>
+cd financebot_3
 ```
 
-### 2. Configure as variáveis de ambiente
+### 2. Instale as dependências Python
+
+```bash
+uv sync
+```
+
+### 3. Configure as variáveis de ambiente
 
 Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
@@ -28,38 +44,65 @@ OPENAI_API_KEY=sua_chave_openai_aqui
 SUPABASE_ACCESS_TOKEN=seu_token_supabase_aqui
 ```
 
-### 3. Instale as dependências dos servidores MCP
+### 4. Instale as dependências dos servidores MCP
 
 #### Para YFinance (dados financeiros):
 ```bash
-# Instale o uv se ainda não tiver
-pip install uv
-# O servidor MCP do yfinance será instalado automaticamente via uvx
+uvx install yfmcp@latest
 ```
 
 #### Para Supabase (banco de dados):
 ```bash
-# Instale as dependências Node.js
-npm install -g @supabase/mcp-server-supabase
+npm install -g @supabase/mcp-server-supabase@latest
+# Ou via npx (sem instalação global):
+npx @supabase/mcp-server-supabase@latest
 ```
 
 ## Rodando a Aplicação
 
-### Opção 1: Interface Web (Streamlit) - Recomendado
+### Opção 1: Executar via main.py (Recomendado)
 
-1. Inicie o servidor MCP (agora automático pelo main.py):
+1. Execute o aplicativo principal:
 ```bash
 python main.py
 ```
-2. Escolha a opção 2 para abrir a interface web.
-3. O navegador abrirá em `http://localhost:8501`.
+2. Escolha uma das opções:
+   - **Opção 1**: Executar servidor MCP (`uv run src/mcp_server.py`)
+   - **Opção 2**: Executar interface web (`streamlit run src/app.py`)
+   - **Opção 3**: Ver instruções para executar ambos
 
-### Opção 2: Teste pelo Terminal
+### Opção 2: Executar comandos diretamente
 
+#### Para o servidor MCP:
 ```bash
-python main.py
+uv run src/mcp_server.py
 ```
-Escolha a opção 1 para testar via terminal.
+
+#### Para a interface web:
+```bash
+streamlit run src/app.py
+```
+
+### Opção 3: Executar ambos simultaneamente
+
+Para usar o sistema completo, você precisará de dois terminais:
+
+**Terminal 1 (Servidor MCP):**
+```bash
+uv run src/mcp_server.py
+```
+
+**Terminal 2 (Interface Web):**
+```bash
+streamlit run src/app.py
+```
+
+### Como funciona:
+
+- O `main.py` executa os comandos diretamente
+- Você vê os logs nativos de cada componente
+- Para usar o sistema completo, execute MCP e Streamlit em terminais separados
+- A interface web será aberta em `http://localhost:8501`
 
 ## Solução de Problemas
 
@@ -94,6 +137,6 @@ Escolha a opção 1 para testar via terminal.
 Depois de rodar, você pode perguntar:
 - "Qual o preço atual da ação AAPL?"
 - "Mostre os dados financeiros mais recentes da Microsoft"
-- "Quais tabelas existem no banco?"
+- "Quanto gastei no mês de julho?"
 
 O sistema escolherá automaticamente a melhor ferramenta para responder sua pergunta. 

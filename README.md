@@ -1,43 +1,64 @@
-# 🤖 Super Agent AI 
+# 🤖 Financebot
 
-Bem-vindo ao **Super Agent AI**, uma plataforma de chat inteligente que integra múltiplas fontes de dados (financeiros, banco de dados, IA) em uma interface moderna e fácil de usar!
+Bem-vindo ao **Financebot**, uma plataforma baseada em agentes de IA (CrewAI) que oferece controle financeiro pessoal e consultas de ativos através de uma interface moderna e intuitiva!
 
 ---
 
 ## 🚀 O que é este projeto?
 
-O Super Agent AI é uma solução baseada em agentes de IA (CrewAI) que permite ao usuário:
-- Fazer perguntas sobre finanças, bancos de dados e dados gerais
-- Obter respostas automáticas, estruturadas e contextualizadas
-- Visualizar resultados em formato de texto, tabela ou JSON
-- Integrar múltiplas fontes (YFinance, Supabase, OpenAI)
+O Financebot é uma solução multi-agente que permite ao usuário:
+- **Controle Financeiro**: Registrar receitas, despesas e consultar saldos
+- **Consultas de Ativos**: Ver cotações, preços e análises de mercado
+- **Classificação Automática**: O sistema identifica automaticamente o tipo de solicitação
+- **Memória Contextual**: Mantém histórico de conversas por usuário
+- **Interface Web Moderna**: Chat intuitivo com Streamlit
 
 ---
 
 ## 🛠️ Principais Recursos
 
-- **Chat Web Moderno** (Streamlit)
-- **Agentes Multi-Fonte** (CrewAI + FastMCP)
-- **Respostas Estruturadas** (tabela, texto, JSON)
-- **Memória por usuário** (contexto de conversa)
-- **Fallback inteligente** se fontes externas estiverem offline
-- **Logs detalhados** do servidor MCP
+- **Multi-Agentes Inteligentes** (CrewAI)
+- **Classificação Automática** de solicitações
+- **Controle Financeiro Completo** (receitas/despesas)
+- **Consultas de Ativos** em tempo real
+- **Interface Web Moderna** (Streamlit)
+- **Memória por Usuário** (contexto persistente)
+- **Logs Detalhados** das crews e agentes
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️ Arquitetura Multi-Agentes
 
 ```mermaid
 graph TD;
-    User[Usuário] -->|Pergunta| Streamlit
-    Streamlit -->|Chama| FastMCP
-    FastMCP -->|Orquestra| CrewAI
-    CrewAI -->|Ferramentas| YFinanceMCP
-    CrewAI -->|Ferramentas| SupabaseMCP
-    CrewAI -->|LLM| OpenAI
-    YFinanceMCP -->|Dados financeiros| APIYFinance
-    SupabaseMCP -->|Banco de dados| Supabase
+    User[Usuário] -->|Pergunta| Classificador
+    Classificador -->|CONTROLE_FINANCEIRO| CrewControle
+    Classificador -->|CONSULTA_ATIVO| CrewAtivos
+    
+    CrewControle -->|Inserção| ColetorDados
+    CrewControle -->|Consulta| GestorDados
+    CrewControle -->|Resposta| Redator
+    
+    CrewAtivos -->|Coleta| ColetorAtivos
+    CrewAtivos -->|Análise| AnalistaAtivos
+    CrewAtivos -->|Resposta| RedatorAtivos
+    
+    ColetorDados -->|SQL| Supabase
+    AnalistaAtivos -->|Dados| YFinance
+    Redator -->|LLM| OpenAI
 ```
+
+### 🤖 Agentes Especializados
+
+#### **Crew: Controle Financeiro**
+- **Coletor de Dados**: Extrai informações de transações
+- **Gestor de Dados**: Executa operações no Supabase
+- **Redator**: Formata respostas amigáveis
+
+#### **Crew: Consulta de Ativos**
+- **Coletor de Ativos**: Identifica símbolos e tipos de consulta
+- **Analista de Ativos**: Busca dados via YFinance
+- **Redator de Ativos**: Formata informações de mercado
 
 ---
 
@@ -46,56 +67,87 @@ graph TD;
 1. **Clone o repositório:**
    ```bash
    git clone <url-do-repo>
-   cd <pasta-do-projeto>
+   cd financebot_3
    ```
-2. **Instale as dependências Python:**
+
+2. **Instale as dependências:**
    ```bash
-   pip install -r requirements.txt
+   uv sync
    ```
+
 3. **Configure o arquivo `.env`:**
    ```env
    OPENAI_API_KEY=sua_chave_openai_aqui
    SUPABASE_ACCESS_TOKEN=seu_token_supabase_aqui # (opcional)
    ```
-4. **Rode o sistema:**
+
+4. **Execute o sistema:**
    ```bash
    python main.py
    ```
-   Escolha entre terminal ou interface web (Streamlit).
 
 ---
 
 ## 💬 Exemplos de Uso
 
-- "Qual o preço atual da ação AAPL?"
-- "Quais tabelas existem no banco?"
-- "Mostre os dados financeiros mais recentes da Microsoft"
+### 💰 Controle Financeiro
+- "Gastei 50 reais no mercado hoje"
+- "Recebi 1000 de salário ontem"
+- "Quanto gastei no mês de julho?"
+- "Mostre meu saldo atual"
+
+### 📈 Consultas de Ativos
+- "Qual o preço atual da PETR4?"
+- "Como está o dólar?"
+- "Cotação do Bitcoin"
+- "Análise da ação AAPL"
 
 ---
 
 ## 🖥️ Interface Web
 
-- Acesse em: [http://localhost:8501](http://localhost:8501)
-- Faça perguntas e veja respostas estruturadas!
+- **Acesse**: [http://localhost:8501](http://localhost:8501)
+- **Chat Intuitivo**: Faça perguntas em linguagem natural
+- **Respostas Estruturadas**: Visualize dados de forma clara
+- **Histórico**: Mantenha contexto das conversas
 
 ---
 
 ## 🧩 Tecnologias Utilizadas
 
 - **Python 3.8+**
+- **CrewAI** (multi-agentes inteligentes)
 - **Streamlit** (interface web)
-- **CrewAI** (agentes de IA)
-- **FastMCP** (orquestração de ferramentas)
+- **FastMCP** (comunicação MCP)
 - **YFinance MCP** (dados financeiros)
 - **Supabase MCP** (banco de dados)
-- **OpenAI** (LLM)
+- **OpenAI GPT-4** (LLM)
+- **uv** (gerenciador de pacotes)
+
+---
+
+## 🚀 Como Executar
+
+### Opção 1: Via main.py (Recomendado)
+```bash
+python main.py
+# Escolha a opção desejada no menu
+```
+
+### Opção 2: Comandos Diretos
+```bash
+# Servidor MCP
+uv run src/mcp_server.py
+
+# Interface Web (em outro terminal)
+streamlit run src/app.py
+```
 
 ---
 
 ## 🛟 Suporte e Dúvidas
 
-- Consulte o arquivo `SETUP_GUIDE.md` para detalhes de instalação
-- Se tiver problemas de encoding no terminal, execute `chcp 65001` antes de rodar
+- Consulte o arquivo `SETUP_GUIDE.md` para detalhes completos de instalação
 - Para dúvidas, abra uma issue ou entre em contato!
 
 ---
