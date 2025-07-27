@@ -62,6 +62,21 @@ graph TD;
 
 ---
 
+## Pré-requisitos
+
+1. **Python 3.8+**
+2. **Node.js (v14 LTS ou superior)**
+   - Baixe e instale em https://nodejs.org/en/
+3. **uv** (gerenciador de pacotes Python)
+   - Instale via pip:
+     ```bash
+     pip install uv
+     ```
+   - Ou via curl (Linux/macOS):
+     ```bash
+     curl -LsSf https://astral.sh/uv/install.sh | sh
+     ```
+
 ## ⚡ Instalação Rápida
 
 1. **Clone o repositório:**
@@ -79,7 +94,23 @@ graph TD;
    ```env
    OPENAI_API_KEY=sua_chave_openai_aqui
    SUPABASE_ACCESS_TOKEN=seu_token_supabase_aqui # (opcional)
+   SUPABASE_PROJECT_REF=codigo_do_projeto
+   SUPABASE_USER=emaildousuario@email.com
    ```
+
+**4. Instale as dependências dos servidores MCP:**
+
+#### Para YFinance (dados financeiros):
+```bash
+uvx install yfmcp@latest
+```
+
+#### Para Supabase (banco de dados):
+```bash
+npm install -g @supabase/mcp-server-supabase@latest
+# Ou via npx (sem instalação global):
+npx @supabase/mcp-server-supabase@latest
+```
 
 4. **Execute o sistema:**
    ```bash
