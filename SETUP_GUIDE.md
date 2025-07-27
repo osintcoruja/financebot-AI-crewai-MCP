@@ -23,7 +23,7 @@ Este guia irá ajudá-lo a configurar e rodar o aplicativo Financebot.
 
 ```bash
 git clone <url-do-repositorio>
-cd financebot_3
+cd <diretório>
 ```
 
 ### 2. Instale as dependências Python
