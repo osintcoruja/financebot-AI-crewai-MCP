@@ -42,6 +42,8 @@ OPENAI_API_KEY=sua_chave_openai_aqui
 
 # Opcional: Token do Supabase (se for usar o MCP do Supabase)
 SUPABASE_ACCESS_TOKEN=seu_token_supabase_aqui
+SUPABASE_PROJECT_REF=codigo_do_projeto
+SUPABASE_USER=emaildousuario@email.com
 ```
 
 ### 4. Instale as dependências dos servidores MCP
