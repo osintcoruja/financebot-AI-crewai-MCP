@@ -2,6 +2,9 @@ from dotenv import load_dotenv
 import subprocess
 import sys
 import time
+import os
+os.environ['VIRTUAL_ENV'] = os.path.join(os.getcwd(), '.venv')
+
 
 def run_mcp_server():
     """Executa o servidor MCP usando uv run"""

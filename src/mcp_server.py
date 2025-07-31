@@ -56,7 +56,7 @@ def is_new_conversation(question: str) -> bool:
     q = question.strip().lower()
     if q in {"sim", "não", "confirmar", "cancelar", "ok", "certo"} or q.isdigit():
         return False
-    if any(p in q for p in ["gastei", "recebi", "investi", "preço", "cotação", "valor", "quanto", "quero", "oi", "olá"]):
+    if any(p in q for p in ["gastei", "recebi", "investi", "preço", "cotação", "valor", "quanto", "quero", "oi", "olá", "gráfico", "grafico"]):
         return True
     return len(q.split()) > 1
 
@@ -65,7 +65,7 @@ def is_new_conversation(question: str) -> bool:
 def criar_agente_classificador(tools, llm):
     return Agent(
         role="Classificador de Solicitações",
-        goal="Identificar se a solicitação do usuário é sobre controle financeiro ou consulta de ativos.",
+        goal="Identificar se a solicitação do usuário é sobre controle financeiro, consulta de ativos ou geração de gráficos.",
         backstory="Especialista em compreender intenções financeiras e organizar informações.",
         tools=[],
         llm=llm,
@@ -283,6 +283,123 @@ def crew_controle_financeiro_consulta(tools, llm, memory, dados_json):
         verbose=True,
     )
 
+# === PARTE 4.3: Crew: Geração de Gráficos ===
+
+def crew_graficos_financeiros(tools, llm, memory, dados_json):
+    coletor_dados_grafico = Agent(
+        role="Coletor de Dados para Gráficos",
+        goal="Buscar dados de receitas e despesas por categoria no banco Supabase.",
+        backstory="Especialista em consultas SQL para extração de dados para visualização.",
+        tools=tools,
+        llm=llm,
+        verbose=True,
+        allow_delegation=False
+    )
+
+    gerador_grafico = Agent(
+        role="Gerador de Gráficos PNG",
+        goal="Criar gráficos em formato PNG usando matplotlib com base nos dados financeiros coletados.",
+        backstory="Especialista em visualização de dados financeiros usando Python e matplotlib para gerar imagens estáticas.",
+        tools=[],
+        llm=llm,
+        verbose=True,
+        allow_delegation=False
+    )
+
+    task_coleta_dados_grafico = Task(
+        description=f"""
+        Buscar dados de receitas e despesas por categoria no banco Supabase para gerar gráficos.
+        
+        Execute as seguintes consultas:
+        1. Total de receitas por categoria no último mês
+        2. Total de despesas por categoria no último mês
+        
+        Retorne os dados organizados em formato JSON para criação de gráficos, exemplo:
+        {{
+            "receitas": {{"Salário": 3000, "Freelance": 500}},
+            "despesas": {{"Alimentação": 800, "Transporte": 300, "Moradia": 1200}}
+        }}
+        """,
+        expected_output="Dados de receitas e despesas organizados por categoria em formato JSON",
+        agent=coletor_dados_grafico
+    )
+
+    task_gerar_grafico = Task(
+        description="""
+        Com base nos dados coletados, gere código Python usando matplotlib para criar gráficos PNG.
+        
+        IMPORTANTE: Retorne APENAS o código Python completo, sem explicações adicionais ou HTML.
+        
+        O código deve:
+        1. Importar matplotlib.pyplot e outras libs necessárias
+        2. Criar dois gráficos de pizza (receitas e despesas) usando os dados reais do banco
+        3. Salvar as imagens em PNG
+        4. Usar cores atrativas e legíveis
+        5. Incluir títulos e percentuais
+        6. Configurar o tamanho adequado (10x8 inches)
+        7. Salvar os arquivos como 'grafico_receitas.png' e 'grafico_despesas.png'
+        
+        Exemplo da estrutura esperada (adapte com os dados reais):
+        ```python
+        import matplotlib.pyplot as plt
+        import numpy as np
+        
+        # Configure matplotlib para não exibir gráficos na tela
+        plt.ioff()
+        
+        # Dados das receitas (substitua pelos dados reais do banco)
+        receitas_categorias = ['Salário', 'Freelance', 'Investimentos']
+        receitas_valores = [3000, 500, 200]
+        
+        # Dados das despesas (substitua pelos dados reais do banco)
+        despesas_categorias = ['Alimentação', 'Transporte', 'Moradia']
+        despesas_valores = [800, 300, 1200]
+        
+        # Cores para os gráficos
+        cores_receitas = ['#2E8B57', '#32CD32', '#98FB98']
+        cores_despesas = ['#DC143C', '#FF6347', '#FFA07A']
+        
+        # Gráfico de Receitas
+        fig1, ax1 = plt.subplots(figsize=(10, 8))
+        wedges, texts, autotexts = ax1.pie(receitas_valores, labels=receitas_categorias, 
+                                          colors=cores_receitas, autopct='%1.1f%%', 
+                                          startangle=90, textprops={'fontsize': 12})
+        ax1.set_title('💰 Receitas por Categoria', fontsize=16, fontweight='bold', pad=20)
+        plt.tight_layout()
+        plt.savefig('grafico_receitas.png', dpi=300, bbox_inches='tight', 
+                    facecolor='white', edgecolor='none')
+        plt.close()
+        
+        # Gráfico de Despesas  
+        fig2, ax2 = plt.subplots(figsize=(10, 8))
+        wedges, texts, autotexts = ax2.pie(despesas_valores, labels=despesas_categorias, 
+                                          colors=cores_despesas, autopct='%1.1f%%', 
+                                          startangle=90, textprops={'fontsize': 12})
+        ax2.set_title('💸 Despesas por Categoria', fontsize=16, fontweight='bold', pad=20)
+        plt.tight_layout()
+        plt.savefig('grafico_despesas.png', dpi=300, bbox_inches='tight', 
+                    facecolor='white', edgecolor='none')
+        plt.close()
+        
+        print("✅ Gráficos gerados com sucesso!")
+        print("📊 Arquivos salvos: grafico_receitas.png e grafico_despesas.png")
+        ```
+        
+        NUNCA retorne HTML, apenas código Python puro usando matplotlib.
+        """,
+        expected_output="Código Python completo para gerar gráficos PNG usando matplotlib (sem HTML)",
+        agent=gerador_grafico
+    )
+
+    return Crew(
+        agents=[coletor_dados_grafico, gerador_grafico],
+        tasks=[task_coleta_dados_grafico, task_gerar_grafico],
+        process=Process.sequential,
+        memory=True,
+        entity_memory=memory,
+        verbose=True,
+    )
+
 ####################################################################################    
 
 # === PARTE 5: Crew: Consulta de Ativos Financeiros ===
@@ -450,11 +567,22 @@ async def assist_financ_core(question: str, user_id: str) -> str:
             }}
         }}
 
+        📋 GERAR_GRAFICO:
+        {{
+        "classificacao": "GERAR_GRAFICO",
+        "status": "COMPLETO",
+        "dados": {{
+            "tipo_grafico": "receitas_despesas_categoria",
+            "periodo": "ultimo_mes" | "ultimos_3_meses" | "ano_atual"
+            }}
+        }}
+
         ⚠️ Regras obrigatórias:
-        - NÃO SAIA doS 3 possíveis formato acima.
+        - NÃO SAIA dos 4 possíveis formatos acima.
         - NÃO inclua observações, explicações ou textos soltos.
         - SEMPRE inclua status="COMPLETO"
         - Sempre que possível, preencha a descrição com base na frase original
+        - Use GERAR_GRAFICO quando o usuário pedir gráficos, análise visual, dashboard ou visualização
         """,
         expected_output="Objeto JSON {dados_json} estruturado como especificado acima",
         agent=classificador
@@ -493,6 +621,8 @@ async def assist_financ_core(question: str, user_id: str) -> str:
             crew = crew_controle_financeiro_insercao(tools, llm, memory, dados)
     elif classificacao == "CONSULTA_ATIVO":
         crew = crew_consulta_ativos(tools, llm, memory, dados)
+    elif classificacao == "GERAR_GRAFICO":
+        crew = crew_graficos_financeiros(tools, llm, memory, dados)
     else:
         return "Classificação desconhecida. Não sei o que fazer com isso."
 
